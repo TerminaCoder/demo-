@@ -1,0 +1,4 @@
+worker-id: f7a8e8e8-a682-4119-9118-c0ed23e25aea
+logs.users: []
+logs.groups: []
+topology.submitter.user: Computer
