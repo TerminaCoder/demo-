@@ -18,13 +18,16 @@ public class WordCountTopology {
 
         TopologyBuilder builder = new TopologyBuilder();
 
-        builder.setSpout(SENTENCE_SPOUT_ID, spout);
+        // 并发为两个task，每个task指派各自的executor
+        builder.setSpout(SENTENCE_SPOUT_ID, spout, 2);
 
         //随机分配SplitSentenceBolt这个实例
-        builder.setBolt(SPLIT_BOLT_ID, splitBolt).shuffleGrouping(SENTENCE_SPOUT_ID);
+        //2个executor 4个task
+        builder.setBolt(SPLIT_BOLT_ID, splitBolt, 2).setNumTasks(4).shuffleGrouping(SENTENCE_SPOUT_ID);
 
         //包含word关键字的被分配到WordCountBolt这个实例
-        builder.setBolt(COUNT_BOLT_ID, countBolt).fieldsGrouping(SPLIT_BOLT_ID, new Fields("word"));
+        //4个task 4个executor
+        builder.setBolt(COUNT_BOLT_ID, countBolt, 4).fieldsGrouping(SPLIT_BOLT_ID, new Fields("word"));
 
         //WordCountBolt的数据 全部发送到reportBolt这个bolt
         builder.setBolt(REPORT_BOLT_ID, reportBolt).globalGrouping(COUNT_BOLT_ID);
@@ -40,7 +43,7 @@ public class WordCountTopology {
 
         cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());
 
-        Thread.sleep(2000);
+        Thread.sleep(4000);
 
 //        Robot r   =   new   Robot();
 //        System.out.println( "延时前:"+new Date().toString()  );
